@@ -45,29 +45,30 @@ export default function ChatScreen({ navigation }) {
     const [socket, setSocket] = useState(null);
 
     useEffect(() => {
-        const s = io("http://localhost:3000");
-        setSocket(s);
+        const socket = io("http://localhost:3000");
+        setSocket(socket);
 
-        s.on("connect", () => {
-            console.log("✅ Socket connected! ID:", s.id);
+        socket.on("connect", () => {
+            console.log("✅ Socket connected! ID:", socket.id);
         });
 
-        s.on("connect_error", (err) => {
+        socket.on("connect_error", (err) => {
             console.error("❌ Socket connect error:", err.message);
         });
 
-        s.on("message", (msgObj) => {
+        socket.on("message", (msgObj) => {
             const botReply = {
                 id: Date.now().toString(),
                 from: "bot",
-                text: msgObj.text,
+                text: msgObj,
                 time: new Date().toLocaleTimeString(),
             };
-            console.log("Received message:", botReply);
-            setMessages(prev => [...prev, botReply]);
+            console.log("Received message:", (botReply.text));
+            console.log("Received msgObj:", msgObj);
+            setMessages((prev) => [...prev, botReply]);
         });
 
-        return () => s.disconnect();
+        return () => socket.disconnect();
     }, []);
 
 
@@ -318,21 +319,51 @@ export default function ChatScreen({ navigation }) {
         }
     };
 
-    // === ✅ sendMessage กลับมาแล้ว
-    const sendMessage = () => {
+    const sendMessage = async () => {
         const text = inputText.trim();
-        if (!text || !socket) return;
-
+        if (!text) {
+            Alert.alert("แจ้งเตือน", "กรุณาพิมพ์คำถาม");
+            return;
+        }
         const userMessage = {
             id: Date.now().toString(),
             from: "user",
             text,
             time: new Date().toLocaleTimeString(),
         };
-        setMessages(prev => [...prev, userMessage]);
+        setMessages((prev) => [...prev, userMessage]);
+        // socket.emit("message", userMessage.text);
         setInputText("");
+        setInputHeight(MIN_H);
+        requestAnimationFrame(() => listRef.current?.scrollToEnd({ animated: true }));
 
-        socket.emit("message", userMessage); // ส่งไป server
+        setSending(true);
+        try {
+            const resp = await askQuestion({
+                chatId: user ? selectedChatId : undefined, // guest = ไม่ส่ง chatId
+                question: text,
+            });
+            // const isRejected = Boolean(resp?.rejected);
+            // const botText = resp?.answer || (isRejected ? "กรุณาพิมพ์คำถาม" : null);
+            // const botReply = {
+            //     id: (Date.now() + 1).toString(),
+            //     from: "bot",
+            //     text: botText,
+            //     time: new Date().toLocaleTimeString(),
+            // };
+            // setMessages((prev) => [...prev, botReply]);
+        } catch (error) {
+            console.error("askQuestion error:", error);
+            const botReply = {
+                id: (Date.now() + 1).toString(),
+                from: "bot",
+                text: "เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์",
+                time: new Date().toLocaleTimeString(),
+            };
+            setMessages((prev) => [...prev, botReply]);
+        } finally {
+            setSending(false);
+        }
     };
 
 

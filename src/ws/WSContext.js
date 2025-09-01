@@ -13,13 +13,24 @@ export const WSProvider = ({ children }) => {
 
     socket.on("connect", () => {
       console.log("WebSocket connected");
-      socket.send("Hello from client!");
+      // socket.send("Hello from client!");
     });
 
     socket.onmessage = (event) => {
       console.log("Received:", event.data);
       setMessages((prev) => [...prev, event.data]);
     };
+
+    socket.on("message", (msgObj) => {
+      const botReply = {
+        id: Date.now().toString(),
+        from: "bot",
+        text: msgObj.text,
+        time: new Date().toLocaleTimeString(),
+      };
+      console.log("WS received message:", botReply);
+      setMessages((prev) => [...prev, botReply]);
+    });
 
     socket.onerror = (error) => {
       console.log("WebSocket error:", error);
