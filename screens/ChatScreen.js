@@ -1,5 +1,6 @@
 // ChatScreen.js
 import { io } from "socket.io-client";
+import Markdown from 'react-native-markdown-display';
 import React, { useRef, useState, useEffect } from "react";
 import {
     Animated,
@@ -369,7 +370,17 @@ export default function ChatScreen({ navigation }) {
 
     const renderItem = ({ item }) => (
         <View style={[styles.messageWrapper, item.from === "user" ? styles.userWrapper : styles.botWrapper]}>
-            <Text style={item.from === "user" ? styles.userMessageText : styles.botMessageText}>{item.text}</Text>
+            <Markdown
+                style={{
+                    body: item.from === "user" ? styles.userMessageText : styles.botMessageText,
+                    strong: item.from === "user" ? { color: 'white' } : { color: '#ffffffff' },
+                    em: item.from === "user" ? { color: 'white' } : { color: '#ffffffff' },
+                    code_block: item.from === "user" ? { color: 'white', backgroundColor: '#333' } : { color: '#ffffffff', backgroundColor: '#333' },
+                    blockquote: item.from === "user" ? { color: 'white', fontStyle: 'italic' } : { color: '#ffffffff', fontStyle: 'italic' },
+                }}
+            >
+                {item.text}
+            </Markdown>
             <Text style={styles.timeText}>{item.time}</Text>
         </View>
     );
@@ -518,7 +529,7 @@ export default function ChatScreen({ navigation }) {
                                 ref={listRef}
                                 data={messages}
                                 renderItem={renderItem}
-                                keyExtractor={(item) => item.id}
+                                keyExtractor={(item) => item.id.toString()}
                                 contentContainerStyle={{ padding: 10, paddingBottom: listBottomPad }}
                                 keyboardShouldPersistTaps="handled"
                                 onContentSizeChange={() => listRef.current?.scrollToEnd({ animated: false })}
@@ -688,7 +699,7 @@ const styles = StyleSheet.create({
     messageWrapper: { maxWidth: "80%", marginVertical: 5, padding: 10, borderRadius: 15 },
     userWrapper: { backgroundColor: "#fff", alignSelf: "flex-end" },
     botWrapper: { backgroundColor: "#333", alignSelf: "flex-start" },
-    botMessageText: { fontSize: 16, color: "#fff" },
+    botMessageText: { fontSize: 16, color: "#ffffffff" },
     userMessageText: { fontSize: 16, color: "#333" },
     timeText: { fontSize: 10, color: "#bbb", marginTop: 3, alignSelf: "flex-end" },
 

@@ -71,6 +71,9 @@ export const askQuestion = async ({ chatId, question, k, d }) => {
         timeout: BASE_TIMEOUT_MS,
       });
       inflightController = null;
+      console.log("data:", data);
+      console.log("taskId:", data.taskId);
+      console.log("question:", data.question);
       return data;
     } catch (err) {
       const isAbort = err?.name === "AbortError" || err?.message === "canceled";
