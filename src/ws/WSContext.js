@@ -25,7 +25,7 @@ export const WSProvider = ({ children }) => {
       const botReply = {
         id: Date.now().toString(),
         from: "bot",
-        text: msgObj.text,
+        text: msgObj,
         time: new Date().toLocaleTimeString(),
       };
       console.log("WS received message:", botReply);
